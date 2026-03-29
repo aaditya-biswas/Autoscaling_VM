@@ -16,6 +16,6 @@ sleep 5
 docker pull aaditya577/app
 
 # Run
-docker run -d -p 3000:3000 --restart always aaditya/app
+docker run -d -p 3000:3000 --restart always aaditya577/app
 
 echo "App deployed"

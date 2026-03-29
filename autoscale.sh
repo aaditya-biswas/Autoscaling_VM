@@ -39,7 +39,8 @@ while true; do
 
 		gcloud compute instances create $vm_name \
 			--source-instance-template=$TEMPLATE \
-			--zone=$ZONE
+			--zone=$ZONE \
+			--metadata=startup-script="$(cat /home/vboxuser/Documents/startup.sh)"
 		last_scale_time=$current_time
 		echo "Created VM : $vm_name"
 	fi
