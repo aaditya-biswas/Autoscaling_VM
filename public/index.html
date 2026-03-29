@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MAISON — Fashion Design Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-follower" id="cursorFollower"></div>
+
+  <!-- Grain Overlay -->
+  <div class="grain"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">MAISON</div>
+    <nav class="nav">
+      <span class="nav-item active" data-section="collection">Collection</span>
+      <span class="nav-item" data-section="atelier">Atelier</span>
+      <span class="nav-item" data-section="moodboard">Moodboard</span>
+      <span class="nav-item" data-section="lookbook">Lookbook</span>
+    </nav>
+    <div class="header-right">
+      <span class="season-tag">SS 2026</span>
+      <button class="btn-new" id="newDesignBtn">+ New Design</button>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero" id="hero">
+    <div class="hero-text">
+      <p class="hero-subtitle">Autumn / Winter 2026</p>
+      <h1 class="hero-title">
+        <span class="line">THE</span>
+        <span class="line italic">ART OF</span>
+        <span class="line">DRAPE</span>
+      </h1>
+      <p class="hero-desc">Where structure meets fluidity. Design begins here.</p>
+    </div>
+    <div class="hero-figure">
+      <div class="mannequin-wrap">
+        <svg class="mannequin-svg" viewBox="0 0 200 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Head -->
+          <ellipse cx="100" cy="38" rx="22" ry="26" fill="#E8DDD2" stroke="#C4B8AC" stroke-width="1"/>
+          <!-- Neck -->
+          <rect x="92" y="62" width="16" height="18" rx="4" fill="#E8DDD2" stroke="#C4B8AC" stroke-width="1"/>
+          <!-- Shoulders -->
+          <path d="M40 90 Q100 75 160 90 L165 130 Q100 120 35 130 Z" fill="#D4C9BE" stroke="#C4B8AC" stroke-width="1"/>
+          <!-- Torso -->
+          <path d="M50 128 Q100 120 150 128 L145 230 Q100 240 55 230 Z" fill="#E8DDD2" stroke="#C4B8AC" stroke-width="1"/>
+          <!-- Waist accent -->
+          <path d="M58 190 Q100 183 142 190" stroke="#C4B8AC" stroke-width="1.5" fill="none"/>
+          <!-- Hips -->
+          <path d="M55 228 Q100 238 145 228 L150 300 Q100 312 50 300 Z" fill="#D4C9BE" stroke="#C4B8AC" stroke-width="1"/>
+          <!-- Left Arm -->
+          <path d="M50 90 Q30 110 28 160 Q26 200 32 240" stroke="#C4B8AC" stroke-width="12" stroke-linecap="round" fill="none"/>
+          <!-- Right Arm -->
+          <path d="M150 90 Q170 110 172 160 Q174 200 168 240" stroke="#C4B8AC" stroke-width="12" stroke-linecap="round" fill="none"/>
+          <!-- Left Leg -->
+          <path d="M70 298 Q65 350 62 400" stroke="#C4B8AC" stroke-width="14" stroke-linecap="round" fill="none"/>
+          <!-- Right Leg -->
+          <path d="M130 298 Q135 350 138 400" stroke="#C4B8AC" stroke-width="14" stroke-linecap="round" fill="none"/>
+          <!-- Stand -->
+          <rect x="85" y="400" width="30" height="8" rx="4" fill="#A09080"/>
+          <rect x="75" y="405" width="50" height="5" rx="2.5" fill="#A09080"/>
+        </svg>
+        <!-- Garment overlay -->
+        <div class="garment-overlay" id="garmentOverlay"></div>
+      </div>
+    </div>
+    <div class="hero-info">
+      <div class="info-block">
+        <span class="info-num">24</span>
+        <span class="info-label">Designs</span>
+      </div>
+      <div class="info-block">
+        <span class="info-num">06</span>
+        <span class="info-label">Fabrics</span>
+      </div>
+      <div class="info-block">
+        <span class="info-num">12</span>
+        <span class="info-label">Looks</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Collection Section -->
+    <section class="section active" id="section-collection">
+      <div class="section-header">
+        <h2 class="section-title">Collection</h2>
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="dress">Dresses</button>
+          <button class="filter-btn" data-filter="coat">Coats</button>
+          <button class="filter-btn" data-filter="top">Tops</button>
+          <button class="filter-btn" data-filter="trouser">Trousers</button>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" id="gridView">⊞</button>
+          <button class="view-btn" id="listView">☰</button>
+        </div>
+      </div>
+
+      <div class="collection-grid" id="collectionGrid">
+        <!-- Cards injected by JS -->
+      </div>
+    </section>
+
+    <!-- Atelier Section -->
+    <section class="section" id="section-atelier">
+      <div class="atelier-layout">
+        <div class="atelier-canvas-wrap">
+          <h2 class="section-title">Design Atelier</h2>
+          <div class="canvas-controls">
+            <div class="tool-group">
+              <span class="tool-label">Silhouette</span>
+              <div class="sil-options" id="silOptions">
+                <button class="sil-btn active" data-sil="A-line">A-Line</button>
+                <button class="sil-btn" data-sil="Straight">Straight</button>
+                <button class="sil-btn" data-sil="Fitted">Fitted</button>
+                <button class="sil-btn" data-sil="Flared">Flared</button>
+                <button class="sil-btn" data-sil="Draped">Draped</button>
+              </div>
+            </div>
+            <div class="tool-group">
+              <span class="tool-label">Neckline</span>
+              <div class="sil-options">
+                <button class="sil-btn active" data-neck="V-Neck">V-Neck</button>
+                <button class="sil-btn" data-neck="Crew">Crew</button>
+                <button class="sil-btn" data-neck="Off-Shoulder">Off Shoulder</button>
+                <button class="sil-btn" data-neck="Halter">Halter</button>
+              </div>
+            </div>
+          </div>
+          <div class="fabric-palette">
+            <span class="tool-label">Fabric & Colour</span>
+            <div class="fabric-swatches" id="fabricSwatches">
+              <div class="swatch active" data-fabric="Silk" data-color="#F5E6D0" style="background:#F5E6D0;" title="Ivory Silk"></div>
+              <div class="swatch" data-fabric="Wool" data-color="#2C2C2C" style="background:#2C2C2C;" title="Onyx Wool"></div>
+              <div class="swatch" data-fabric="Chiffon" data-color="#C9B8D8" style="background:#C9B8D8;" title="Mauve Chiffon"></div>
+              <div class="swatch" data-fabric="Velvet" data-color="#1A3A4A" style="background:#1A3A4A;" title="Midnight Velvet"></div>
+              <div class="swatch" data-fabric="Linen" data-color="#D4C5A9" style="background:#D4C5A9;" title="Sand Linen"></div>
+              <div class="swatch" data-fabric="Satin" data-color="#8B1A1A" style="background:#8B1A1A;" title="Crimson Satin"></div>
+              <div class="swatch" data-fabric="Organza" data-color="#E8F4F0" style="background:#E8F4F0;" title="Mint Organza"></div>
+              <div class="swatch" data-fabric="Leather" data-color="#3D2B1F" style="background:#3D2B1F;" title="Espresso Leather"></div>
+            </div>
+          </div>
+
+          <div class="atelier-preview" id="atelierPreview">
+            <div class="ap-figure">
+              <!-- Preview body drawn in CSS -->
+              <div class="ap-head"></div>
+              <div class="ap-neck"></div>
+              <div class="ap-garment" id="apGarment">
+                <div class="ap-top" id="apTop"></div>
+                <div class="ap-skirt" id="apSkirt"></div>
+              </div>
+              <div class="ap-arms">
+                <div class="ap-arm left"></div>
+                <div class="ap-arm right"></div>
+              </div>
+            </div>
+            <div class="ap-details" id="apDetails">
+              <p class="ap-name" id="apName">Untitled Design</p>
+              <p class="ap-spec" id="apSpec">A-Line · V-Neck · Ivory Silk</p>
+            </div>
+          </div>
+
+          <div class="atelier-actions">
+            <input type="text" class="design-name-input" id="designNameInput" placeholder="Name your design..." />
+            <button class="btn-save" id="saveDesignBtn">Save to Collection</button>
+          </div>
+        </div>
+
+        <div class="atelier-sidebar">
+          <h3 class="sidebar-title">Design Notes</h3>
+          <textarea class="notes-area" placeholder="Sketch your ideas, fabric notes, measurements..."></textarea>
+          <div class="measurements">
+            <h3 class="sidebar-title" style="margin-top:2rem">Measurements</h3>
+            <div class="measure-row"><span>Bust</span><input type="number" placeholder="cm" class="measure-input"/></div>
+            <div class="measure-row"><span>Waist</span><input type="number" placeholder="cm" class="measure-input"/></div>
+            <div class="measure-row"><span>Hip</span><input type="number" placeholder="cm" class="measure-input"/></div>
+            <div class="measure-row"><span>Length</span><input type="number" placeholder="cm" class="measure-input"/></div>
+          </div>
+          <div class="tags-section">
+            <h3 class="sidebar-title" style="margin-top:2rem">Tags</h3>
+            <div class="tag-input-wrap">
+              <input type="text" class="tag-input" id="tagInput" placeholder="Add tag…"/>
+              <button class="tag-add-btn" id="tagAddBtn">+</button>
+            </div>
+            <div class="tags-list" id="tagsList">
+              <span class="tag">Avant-garde</span>
+              <span class="tag">Evening</span>
+              <span class="tag">Runway</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Moodboard Section -->
+    <section class="section" id="section-moodboard">
+      <div class="section-header">
+        <h2 class="section-title">Moodboard</h2>
+        <button class="btn-new" id="addMoodItem">+ Add Inspiration</button>
+      </div>
+      <div class="moodboard-grid" id="moodboardGrid">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- Lookbook Section -->
+    <section class="section" id="section-lookbook">
+      <div class="lookbook-header">
+        <h2 class="section-title">Lookbook</h2>
+        <p class="lookbook-subtitle">Autumn / Winter 2026 — The Art of Drape</p>
+      </div>
+      <div class="lookbook-strip" id="lookbookStrip">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: New Design -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <h2 class="modal-title">New Design</h2>
+      <div class="modal-body">
+        <label>Collection Name</label>
+        <input type="text" class="modal-input" placeholder="e.g. Midnight Bloom" id="newDesignName"/>
+        <label>Category</label>
+        <select class="modal-input" id="newDesignCat">
+          <option>Dress</option><option>Coat</option><option>Top</option><option>Trouser</option><option>Suit</option><option>Gown</option>
+        </select>
+        <label>Season</label>
+        <select class="modal-input" id="newDesignSeason">
+          <option>SS 2026</option><option>AW 2026</option><option>Resort 2027</option>
+        </select>
+        <button class="btn-save" id="createDesignConfirm" style="width:100%;margin-top:1.5rem">Create Design</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
