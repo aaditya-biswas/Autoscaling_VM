@@ -125,7 +125,7 @@ while true; do
       last_scale_time=$now
     fi
   fi
-  sleep 10
+   
 done
 ```
 
