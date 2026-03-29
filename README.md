@@ -1,233 +1,148 @@
-# Auto-Scaling Node.js Application using Docker and Google Cloud
+# MAISON Fashion Studio: Auto-Scaling Node.js Application
 
-## Overview
+## 1. Overview
+This repository contains the implementation for the Auto-Scaling Node.js Application (referred to locally as "App") for MAISON Fashion Studio. The system is designed to monitor CPU usage on a local Virtual Machine. When utilisation exceeds a defined threshold, it automatically provisions new Google Cloud VMs to ensure uninterrupted service availability. 
 
-This project demonstrates a **custom auto-scaling system** built from scratch using:
+The application itself is a full-featured Express.js backend serving a rich editorial frontend. It is containerised using Docker and deployed on GCP instances that are created on-demand by a custom Bash autoscaling engine.
 
-* Local VM monitoring
-* Docker containerization
-* Google Cloud VM provisioning
+* **Runtime:** Node.js 18 + Express  
+* **Containerisation:** Docker  
+* **Cloud Provider:** Google Cloud Platform (GCP)  
+* **Monitoring:** `mpstat` CPU sampling + custom Bash autoscaler  
+* **Scaling Trigger:** CPU usage > 75% for a 60-second cooldown window  
+* **Max Cloud VMs:** 5 (configurable)  
 
-The system monitors CPU usage on a local machine and **automatically provisions new cloud VMs** when usage exceeds a threshold.
+## 2. Technology Stack
+* **Node.js 18:** Express-based REST backend serving the Collection, Atelier, Moodboard, and Lookbook APIs.  
+* **Docker:** Containerises the App for consistent, reproducible deployments across local and cloud environments.  
+* **Docker Hub:** Central image registry where VMs pull the latest app image on startup.  
+* **Bash:** Uses `autoscale.sh` to poll `mpstat` every 10 seconds and trigger `gcloud` when the CPU threshold is exceeded.  
+* **GCP Compute:** Provisions on-demand Debian-11 `e2-medium` VMs from an instance template using the `gcloud` CLI.  
+* **mpstat:** Provides low-level CPU measurement without requiring external agent dependencies.  
 
----
+## 3. Application Structure & Endpoints
+The backend exposes the following REST endpoints:
+* `GET /api/designs` - List all designs  
+* `POST /api/designs` - Create a new design  
+* `DELETE /api/designs/:id` - Remove a design  
 
-## Architecture
+The static frontend (Collection, Atelier, Moodboard, Lookbook) is served from the `/public` directory. 
 
-```
-Local VM (Debian)
-   ├── Node.js App (Dockerized)
-   ├── CPU Monitoring Script
-   └── Autoscaler Trigger
-           ↓
-Google Cloud Platform (GCP)
-   ├── Instance Template
-   └── Auto-created VMs
-           └── Run Docker Container
-```
+**Directory Structure:**
+* `App/`
+  * `package.json` (dependencies & scripts)  
+  * `server.js` (Express server)  
+  * `README.md`  
+  * `Dockerfile`  
+  * `public/`
+    * `index.html`  
+    * `style.css`  
+    * `app.js`  
 
----
+## 4. Step-by-Step Implementation
 
-## Tech Stack
-
-* Node.js (Backend)
-* Docker (Containerization)
-* Bash (Automation Script)
-* Google Cloud Platform (VM provisioning)
-* mpstat (CPU Monitoring)
-
----
-
-## Step 1: Node.js Application
-
-A basic Express-based backend was created with endpoints such as:
-
-* `/products`
-* `/cart`
-* `/checkout`
-
----
-
-##  Step 2: Docker Setup
-
-### Dockerfile
-
+### Step 4.1: Docker Setup
+Create a `Dockerfile` in the root directory:
 ```dockerfile
 FROM node:18
-
 WORKDIR /app
-
-COPY package*.json ./
+COPY package.json .
 RUN npm install
-
 COPY . .
-
 EXPOSE 3000
-
 CMD ["npm", "run", "start"]
+````
+
+Build and run the image locally:
+
+```bash
+docker build -t app .
+docker run -p 3000:3000 app
 ```
 
-### Build Image
+Tag and push to Docker Hub:
 
-```
-docker build -t fashion-app .
-```
-
-### Run Container
-
-```
-docker run -p 3000:3000 fashion-app
+```bash
+docker tag app <your-username>/app
+docker push <your-username>/app
 ```
 
----
+### Step 4.2: GCP Instance Template & Startup Script
 
-## Step 3: Push to Registry
-
-Using Docker Hub:
-
-```
-docker login
-docker tag fashion-app <your-username>/fashion-app
-docker push <your-username>/fashion-app
-```
-
----
-
-##  Step 4: GCP Instance Template
-
-### Startup Script (`startup.sh`)
+When a new cloud VM boots, it automatically runs `startup.sh`. Save this script:
 
 ```bash
 #!/bin/bash
-
 exec > /var/log/startup-script.log 2>&1
-
 apt-get update -y
 apt-get install -y docker.io
-
 systemctl start docker
 systemctl enable docker
-
-sleep 5
-
-docker pull <your-username>/fashion-app
-docker run -d -p 3000:3000 --restart always <your-username>/fashion-app
+docker pull <your-username>/app
+docker run -d -p 3000:3000 --restart always <your-username>/app
 ```
 
----
+Register the GCP template using the `gcloud` CLI:
 
-### Create Template
-
-```
+```bash
 gcloud compute instance-templates create my-template \
-  --machine-type=e2-medium \
-  --image-family=debian-11 \
-  --image-project=debian-cloud \
-  --metadata-from-file startup-script=startup.sh
+--machine-type=e2-medium \
+--image-family debian-11 \
+--image-project-debian-cloud \
+--metadata-from-file startup-script=startup.sh
 ```
 
----
+### Step 4.3: The Autoscaler Daemon
 
-## 🧪 Step 5: Test VM Creation
+The `autoscale.sh` script runs as a background daemon on the local VM. It enforces a 60-second cooldown period, a 5 VM maximum cap, and uses timestamp suffixes to avoid naming collisions.
 
-```
-gcloud compute instances create test-vm \
-  --source-instance-template=my-template \
-  --zone=us-central1-a
-```
-
----
-
-##  Step 6: Autoscaling Script
-
-### autoscale.sh
+Save as `autoscale.sh` and make executable (`chmod +x`):
 
 ```bash
 #!/bin/bash
-
 THRESHOLD=75
 COOLDOWN=60
 ZONE="us-central1-a"
 TEMPLATE="my-template"
 MAX_VMS=5
-
 last_scale_time=0
 
-get_cpu_usage() {
-    read cpu user nice system idle iowait irq softirq steal guest < /proc/stat
-    total1=$((user + nice + system + idle + iowait + irq + softirq + steal))
-    idle1=$idle
-
-    sleep 1
-
-    read cpu user nice system idle iowait irq softirq steal guest < /proc/stat
-    total2=$((user + nice + system + idle + iowait + irq + softirq + steal))
-    idle2=$idle
-
-    total_diff=$((total2 - total1))
-    idle_diff=$((idle2 - idle1))
-
-    cpu_usage=$((100 * (total_diff - idle_diff) / total_diff))
-    echo $cpu_usage
-}
-
 while true; do
-    cpu_usage=$(get_cpu_usage)
-
-    echo "CPU Usage: $cpu_usage%"
-
-    current_time=$(date +%s)
-    time_diff=$((current_time - last_scale_time))
-
-    vm_count=$(gcloud compute instances list \
-        --filter="name:autoscaled-vm" \
-        --format="value(name)" | wc -l)
-
-    if [ "$cpu_usage" -gt "$THRESHOLD" ] && \
-       [ $time_diff -gt $COOLDOWN ] && \
-       [ $vm_count -lt $MAX_VMS ]; then
-
-        vm_name="autoscaled-vm-$(date +%s)"
-
-        gcloud compute instances create $vm_name \
-            --source-instance-template=$TEMPLATE \
-            --zone=$ZONE
-
-        last_scale_time=$current_time
+  now=$(date +%s)
+  idle=$(mpstat 1 1 | awk '/Average/ {print $NF}')
+  cpu_usage=$(echo "100 - $idle" | bc)
+  
+  vms=$(gcloud compute instances list \
+    --filter="name: autoscaled-vm" \
+    --format="value(name)" | wc -l)
+    
+  if [ $cpu_usage -gt $THRESHOLD ] && [ $((now - last_scale_time)) -gt $COOLDOWN ]; then
+    if [ $vms -lt $MAX_VMS ]; then
+      name="autoscaled-vm-$(date +%s)"
+      gcloud compute instances create $name \
+        --source-instance-template=$TEMPLATE \
+        --zone=$ZONE
+      last_scale_time=$now
     fi
-
-    sleep 10
+  fi
+  sleep 10
 done
 ```
 
----
+Run the autoscaler in the background with logging:
 
-##  Key Safeguards
-
-* **Cooldown (60s):** prevents rapid scaling
-* **Max VM Limit (5):** avoids excessive cost
-* **Unique VM names:** avoids conflicts
-
----
-
-
-##  Accessing Application
-
-1. Get VM external IP
-2. Open:
-
-```
-http://<external-ip>:3000
+```bash
+nohup bash autoscale.sh >> /var/log/autoscale.log 2>&1 &
 ```
 
----
+## 5. Key Safeguards
 
-## Future Improvements
-
-* Add Load Balancer
-* Use Managed Instance Groups (MIG)
-* Integrate Prometheus + AlertManager
-* Move to Kubernetes (HPA)
+* **Cooldown (60 s):** Prevents multiple VMs from being created in rapid succession during a spike.
+* **VM Cap (5):** Hard limit on GCP VMs prevents unbounded cost growth.
+* **Unique VM Names:** Timestamp suffix ensures no naming conflicts between autoscaled instances.
+* **Log File:** `/var/log/autoscale.log` captures every CPU reading and scale event.
+* **Startup Script Log:** `/var/log/startup-script.log` on each cloud VM records container pull/run status.
+* **Firewall Rule Scoping:** Network tags restrict the HTTPS firewall rule to only App-tagged instances.
 
 ---
 
