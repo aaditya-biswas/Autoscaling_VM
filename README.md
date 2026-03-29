@@ -211,7 +211,7 @@ done
 ---
 
 
-## 🌐 Accessing Application
+##  Accessing Application
 
 1. Get VM external IP
 2. Open:
